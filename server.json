@@ -2,7 +2,7 @@
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "io.github.Adenion/blog2social-api-mcp",
   "title": "Blog2Social - Social Media Publishing",
-  "description": "Connect AI assistants and agents to Blog2Social and automate social media content workflows across 25+ supported platforms. Create, manage, schedule, and publish posts, streamline content distribution, and manage your social media publishing workflow directly through the Model Context Protocol (MCP).",
+  "description": "Connect AI assistants and agents to Blog2Social to create, schedule, manage, and publish social media content across 25+ platforms via MCP.",
   "version": "1.0.0",
   "websiteUrl": "https://www.blog2social.com/",
   "repository": {
