@@ -12,8 +12,10 @@ The MCP server can be used to:
 * discover supported social networks
 * connect and disconnect social media accounts
 * check Blog2Social credit balances
+* review aggregated account usage by day, endpoint and social network
 * inspect publishing capabilities and network-specific limits
 * publish text, link, image and video posts
+* retrieve performance insights for published posts
 * check the publishing status of video posts
 
 The MCP server is hosted by Blog2Social. **No local MCP server installation is required.** Authentication is handled through OAuth.
@@ -98,27 +100,52 @@ After adding the MCP endpoint, the client redirects you through the Blog2Social 
 
 # Available Tools
 
-The Blog2Social MCP server currently provides the following tools.
+The production Blog2Social MCP server exposes the following tools. Development-only tools are not listed here.
+
+## `networks.list`
+
+**Read-only**
+
+Returns the social networks available to the authenticated Blog2Social API user, including network IDs and supported account types such as profiles, pages and groups.
+
+Use this tool to find valid `network_id` and account type values before connecting an account.
+
+Example:
+
+```text
+Which social networks and account types can I connect to Blog2Social?
+```
+
+---
 
 ## `connections.list`
 
 **Read-only**
 
-Returns the social media accounts currently connected to the authenticated Blog2Social account.
+Returns the social media accounts connected to the authenticated Blog2Social user. Each entry includes the network, account type, display name and `client_user_network_id`.
 
-The response includes information such as:
+Use `client_user_network_id` to identify the account for publishing or disconnection. This tool lists connected accounts; use `networks.list` for networks that can be connected.
 
-* social network
-* account type
-* display name
-* `client_user_network_id`
-
-The `client_user_network_id` identifies the connected account and is used when publishing posts with `posts.create`.
-
-Example use:
+Example:
 
 ```text
-Show me all social media accounts connected to Blog2Social.
+Show me the social media accounts connected to Blog2Social.
+```
+
+---
+
+## `networks.properties`
+
+**Read-only**
+
+Returns publishing requirements and capabilities for the available network and account-type combinations, including supported formats, media capabilities and limits.
+
+The response contains `network_id` and account-type information to identify the relevant entry. Use it before publishing; capabilities vary by network and account type.
+
+Example:
+
+```text
+What formats and limits does Blog2Social report for LinkedIn?
 ```
 
 ---
@@ -127,32 +154,15 @@ Show me all social media accounts connected to Blog2Social.
 
 **Writes**
 
-Starts the authorization process for connecting a social network account.
+Starts OAuth authorization for connecting an account. It requires `network_id` and `network_type_id` from `networks.list`; `language` is optional. Account types are `0` for profile, `1` for page and `2` for group.
 
-The tool uses:
+The tool returns an `auth_link` that the user must open and approve. The connection is not complete until authorization finishes; use `connections.list` afterward to verify it. Pinterest also requires an active custom app assigned to the API service.
 
-* `network_id` – identifies the social network
-* `network_type_id` – identifies the account type
-
-Supported account types are:
+Example:
 
 ```text
-0 = Profile
-1 = Page
-2 = Group
+Connect my LinkedIn page to Blog2Social.
 ```
-
-The tool normally returns an authorization link that the user opens to authorize the connection.
-
-Pinterest is an exception and may require a custom application configuration instead of the standard authorization link.
-
-Example use:
-
-```text
-Connect my LinkedIn account to Blog2Social.
-```
-
-The available networks and supported account types should be checked with `networks.list` before starting the connection process.
 
 ---
 
@@ -160,67 +170,14 @@ The available networks and supported account types should be checked with `netwo
 
 **Destructive**
 
-Removes an existing social network connection from the authenticated Blog2Social account.
+Removes the connection identified by `client_user_network_id` from the authenticated Blog2Social user. Use the ID from `connections.list` and only call this tool when the user explicitly asks to disconnect that account.
 
-The `client_user_network_id` from `connections.list` is required to identify the account to remove.
+After removal, the account cannot be used for publishing until it is connected again.
 
-After removal, the account can no longer be used for publishing until it is connected again.
-
-Example use:
+Example:
 
 ```text
 Disconnect my Facebook page from Blog2Social.
-```
-
-Because this operation is destructive, it should only be executed when the user explicitly requests the removal.
-
----
-
-## `networks.list`
-
-**Read-only**
-
-Returns the social networks that can be connected to Blog2Social.
-
-For each network, the response can include:
-
-* network name
-* network URL
-* `network_id`
-* supported profiles
-* supported pages
-* supported groups
-
-The returned `network_id` can be used with `connections.add`.
-
-Example use:
-
-```text
-Which social networks can I connect to Blog2Social?
-```
-
----
-
-## `networks.list_properties`
-
-**Read-only**
-
-Returns publishing capabilities and restrictions for a specific social network and account type.
-
-This can include:
-
-* supported media formats
-* image support
-* video support
-* character limits
-* other network-specific publishing requirements
-
-This tool should be used when preparing content for a specific network to ensure that the content matches the network's requirements.
-
-Example use:
-
-```text
-What are the publishing requirements for LinkedIn?
 ```
 
 ---
@@ -229,37 +186,49 @@ What are the publishing requirements for LinkedIn?
 
 **Read-only**
 
-Returns the current credit balance of the authenticated Blog2Social API account.
+Returns the current available credit balance for the authenticated Blog2Social API account.
 
-The credit balance can be checked when a publishing operation cannot be completed or before performing an operation that requires credits.
-
-Example use:
+Example:
 
 ```text
-How many Blog2Social credits do I have left?
+How many Blog2Social API credits are available?
 ```
 
 ---
 
-## `posts.create`
+## `account.overview`
+
+**Read-only**
+
+Returns the current credit balance and aggregated usage totals grouped by day, endpoint and social network. The optional `days` parameter is an integer from 1 to 30; when omitted, the endpoint default is used.
+
+This is an account-level usage overview, not performance analytics for an individual post. Use `posts.insights` for post performance.
+
+Example:
+
+```text
+Show my Blog2Social API usage for the last 14 days.
+```
+
+---
+
+## `posts.publish_post`
 
 **Writes**
 
-Publishes content to a connected social media account.
+Publishes one or more posts immediately to the connected account identified by `client_user_network_id`. This tool does not create drafts or schedule posts.
 
-The target account is identified using its `client_user_network_id`.
-
-Supported post formats are:
+Each item in `b2s_posts` requires a `message` and `postFormat`:
 
 ```text
-0 = Text / Link
-1 = Image
-2 = Video
+0 = text or link
+1 = image
+2 = video
 ```
 
-Depending on the selected format, posts can contain text, links, images or videos.
+Image and video posts also require `mediaObjects` with the matching `IMAGE` or `VIDEO` type and a publicly accessible HTTP or HTTPS `url`. An optional `customUrl` can be included where supported. Check `networks.properties` before publishing.
 
-For non-video posts, the response can contain a `publish_url`.
+Only call this tool when the user explicitly requests immediate publication. Check all returned error fields; do not assume success or automatically retry an uncertain request. A successful response may include `publish_url` for `posts.insights`, or `video_token` for `videos.status`.
 
 Example:
 
@@ -273,50 +242,55 @@ Use the following text:
 We have just published a new article about AI automation.
 ```
 
-The AI client can use `connections.list` to identify the appropriate connected account and then use `posts.create` to publish the content.
+---
+
+## `posts.insights`
+
+**Read-only; may consume credits**
+
+Retrieves the latest available performance insights and associated credit information for one of the user's published posts. The `post_url` argument must be the public `publish_url` returned after a successful `posts.publish_post`.
+
+Insights are available only for supported networks and account types with tracking enabled. Available metrics vary; report only values returned by the tool. The request may deduct credits.
+
+Example:
+
+```text
+Show me the performance insights for this published post:
+https://example.com/published-post
+```
 
 ---
 
-## `videos.check`
+## `videos.status`
 
 **Read-only**
 
-Checks the publishing status of a video post.
+Checks video publication status using the `video_token` returned by `posts.publish_post`.
 
-When `posts.create` publishes a video, the response can contain a `video_token`.
+Possible states include `pending`, `failed` and `successful`. A `publish_url` may be returned after successful publication. If the status is pending, check again later; do not treat it as success.
 
-`videos.check` uses this token to check the current publishing status.
-
-Possible states include:
+Example:
 
 ```text
-pending
-failed
-successful
-```
-
-When publishing succeeds, a `publish_url` can be returned.
-
-Example use:
-
-```text
-Check whether my video post has finished publishing.
+Check the publication status for this video token: [video_token]
 ```
 
 ---
 
 # Tool Overview
 
-| Tool                       | Type        | Purpose                               |
-| -------------------------- | ----------- | ------------------------------------- |
-| `connections.list`         | Read-only   | List connected social accounts        |
-| `connections.add`          | Writes      | Start connecting a social account     |
-| `connections.remove`       | Destructive | Remove a connected social account     |
-| `networks.list`            | Read-only   | List available social networks        |
-| `networks.list_properties` | Read-only   | Get network publishing requirements   |
-| `credits.balance`          | Read-only   | Check the current credit balance      |
-| `posts.create`             | Writes      | Publish text, links, images or videos |
-| `videos.check`             | Read-only   | Check video publishing status         |
+| Tool                  | Type                           | Purpose                                     |
+| --------------------- | ------------------------------ | ------------------------------------------- |
+| `networks.list`       | Read-only                      | List networks and account types             |
+| `connections.list`    | Read-only                      | List connected social accounts              |
+| `networks.properties` | Read-only                      | Get network publishing requirements         |
+| `connections.add`     | Writes                         | Start account authorization                 |
+| `connections.remove`  | Destructive                    | Remove a connected account                  |
+| `credits.balance`     | Read-only                      | Check the available credit balance          |
+| `account.overview`    | Read-only                      | View aggregated account credit usage        |
+| `posts.publish_post`  | Writes                         | Publish content immediately                 |
+| `posts.insights`      | Read-only; may consume credits | Retrieve post performance insights          |
+| `videos.status`       | Read-only                      | Check video publication status              |
 
 ---
 
@@ -574,7 +548,13 @@ What media formats and character limits are supported for LinkedIn?
 ### Check credits
 
 ```text
-How many Blog2Social credits do I have?
+How many Blog2Social API credits are available?
+```
+
+### Review account usage
+
+```text
+Show my Blog2Social API usage for the last 14 days.
 ```
 
 ### Publish a link
@@ -587,6 +567,13 @@ https://example.com/my-article
 Use the following text:
 
 We have just published a new article about AI automation.
+```
+
+### Review post performance
+
+```text
+Show me the performance insights for this published post:
+https://example.com/published-post
 ```
 
 ### Publish an image
@@ -663,7 +650,7 @@ The underlying Blog2Social API provides a unified interface for publishing acros
 * Band
 * HumHub
 
-Supported post types and media formats vary by network. Use `networks.list` and `networks.list_properties` to determine the capabilities available for a particular network and account type.
+Supported post types and media formats vary by network. Use `networks.list` to find available networks and account types, then use `networks.properties` to review the reported requirements and capabilities.
 
 ---
 
