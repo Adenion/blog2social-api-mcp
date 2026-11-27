@@ -3,7 +3,7 @@
   "name": "io.github.Adenion/blog2social-api-mcp",
   "title": "Blog2Social - Social Media Publishing",
   "description": "Connect AI agents to Blog2Social and automate social media content workflows via MCP.",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "websiteUrl": "https://www.blog2social.com/",
   "repository": {
     "url": "https://github.com/Adenion/blog2social-api-mcp",

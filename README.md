@@ -464,6 +464,44 @@ After authorization, Copilot can use the Blog2Social MCP tools supported by the 
 
 ---
 
+# Cline
+
+Cline can connect to the hosted Blog2Social MCP server using Streamable HTTP and OAuth.
+
+## Set up with the Cline CLI
+
+If the Cline CLI is available, add the remote server with:
+
+```bash
+cline mcp add blog2social https://api.blog2social.com/mcp --transport http --yes
+```
+
+Then run `cline mcp`, choose **Authorize OAuth**, and complete the Blog2Social authorization in the browser. Confirm that Blog2Social appears in Cline's MCP server list and that its tools are available. Do not put Blog2Social passwords or access tokens in the MCP configuration.
+
+When asked to set up Blog2Social from this README, use the CLI command when available rather than only returning setup instructions. OAuth approval still requires the user.
+
+## Set up in the Cline UI
+
+1. Open **MCP Servers** in Cline and go to **Remote Servers**.
+2. Set the server name to `blog2social`.
+3. Enter `https://api.blog2social.com/mcp` as the server URL.
+4. Select **Streamable HTTP**, add the server, and complete the OAuth authorization when prompted.
+
+For a native Cline MCP settings JSON configuration, use:
+
+```json
+{
+  "mcpServers": {
+    "blog2social": {
+      "type": "streamableHttp",
+      "url": "https://api.blog2social.com/mcp"
+    }
+  }
+}
+```
+
+---
+
 # n8n
 
 n8n can use MCP-compatible connections to integrate Blog2Social into automated workflows.
@@ -673,6 +711,8 @@ Always review the OAuth authorization request before approving access and only c
 
 ## Repository purpose
 
-This repository contains the metadata used to publish the Blog2Social MCP server to the official MCP Registry.
+This repository contains the metadata used to publish the Blog2Social MCP server to the official MCP Registry and the portable Agent Plugin files used by compatible clients.
+
+`server.json` is the MCP Registry manifest. `plugin.json` and `mcp.json` define the Agent Plugin manifest and hosted MCP server connection.
 
 The MCP server itself is hosted by Blog2Social and does not need to be installed locally.

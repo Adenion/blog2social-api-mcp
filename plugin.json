@@ -1,0 +1,14 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "blog2social-api-mcp",
+  "version": "1.0.2",
+  "description": "Hosted Blog2Social MCP server for social media publishing.",
+  "homepage": "https://www.blog2social.com/",
+  "repository": "https://github.com/Adenion/blog2social-api-mcp",
+  "license": "MIT",
+  "keywords": [
+    "blog2social",
+    "mcp",
+    "social-media"
+  ]
+}
