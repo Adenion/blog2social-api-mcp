@@ -1,5 +1,7 @@
 # Blog2Social MCP Server
 
+[![HostedMCP checks](https://api.hostedmcp.org/v1/badge/server/adenion/blog2social-api-mcp.svg)](https://hostedmcp.org/servers/adenion/blog2social-api-mcp/checks)
+
 The **Blog2Social MCP Server** provides a hosted [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) interface for connecting AI assistants, AI agents, coding assistants and automation tools directly to Blog2Social.
 
 With the MCP server, compatible AI applications can use Blog2Social functionality through natural-language instructions instead of requiring a custom Blog2Social API integration for each application.
